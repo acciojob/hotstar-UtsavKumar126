@@ -40,8 +40,10 @@ public class SubscriptionService {
         subscription.setUser(user);
         user.setSubscription(subscription);
         userRepository.save(user);
+        int amount=subtypeCost(subscriptionEntryDto.getSubscriptionType())
+                +findi(subscriptionEntryDto.getSubscriptionType())*(subscriptionEntryDto.getNoOfScreensRequired());
 
-        return subtypeCost(subscriptionEntryDto.getSubscriptionType());
+        return amount;
     }
 
     private int findi(SubscriptionType subscriptionType) {
