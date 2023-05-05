@@ -33,7 +33,8 @@ public class SubscriptionService {
         Subscription subscription=new Subscription();
         subscription.setSubscriptionType(subscriptionEntryDto.getSubscriptionType());
         subscription.setNoOfScreensSubscribed(subscriptionEntryDto.getNoOfScreensRequired());
-        subscription.setTotalAmountPaid(subtypeCost(subscriptionEntryDto.getSubscriptionType()));
+        subscription.setTotalAmountPaid(subtypeCost(subscriptionEntryDto.getSubscriptionType())
+                +findi(subscriptionEntryDto.getSubscriptionType())*(subscriptionEntryDto.getNoOfScreensRequired()));
         subscription.setStartSubscriptionDate(new Date());
 
         subscription.setUser(user);
@@ -43,31 +44,41 @@ public class SubscriptionService {
         return subtypeCost(subscriptionEntryDto.getSubscriptionType());
     }
 
+    private int findi(SubscriptionType subscriptionType) {
+        if(subscriptionType.equals(SubscriptionType.ELITE))return 350;
+        else if(subscriptionType.equals(SubscriptionType.PRO))return 250;
+        else{
+            return 200;
+        }
+    }
+
     public Integer upgradeSubscription(Integer userId)throws Exception{
 
         //If you are already at an ElITE subscription : then throw Exception ("Already the best Subscription")
         User user=userRepository.findById(userId).get();
-        if(user.getSubscription().getSubscriptionType().equals(SubscriptionType.ELITE)){
+        int amount=0;
+        Subscription subscription=user.getSubscription();
+        if(subscription.getSubscriptionType().equals(SubscriptionType.ELITE)){
             throw new Exception("Already the best Subscription");
         }
         //In all other cases just try to upgrade the subscription and tell the difference of price that user has to pay
-        else if(user.getSubscription().getSubscriptionType().equals(SubscriptionType.PRO)){
-            user.getSubscription().setSubscriptionType(SubscriptionType.ELITE);
-            user.getSubscription().setTotalAmountPaid(subtypeCost(SubscriptionType.ELITE));
-            user.getSubscription().setNoOfScreensSubscribed(1000);
-
-            userRepository.save(user);
-            return 200;
+        else if(subscription.getSubscriptionType().equals(SubscriptionType.PRO)){
+            subscription.setSubscriptionType(SubscriptionType.ELITE);
+            subscription.setTotalAmountPaid(1000+(350*subscription.getNoOfScreensSubscribed()));
+            amount=(1000+(350*subscription.getNoOfScreensSubscribed()))-(800+(250*subscription.getNoOfScreensSubscribed()));
         }
         else{
-            user.getSubscription().setSubscriptionType(SubscriptionType.PRO);
-            user.getSubscription().setTotalAmountPaid(subtypeCost(SubscriptionType.PRO));
-            user.getSubscription().setNoOfScreensSubscribed(800);
-
-            userRepository.save(user);
-            return 300;
+            subscription.setSubscriptionType(SubscriptionType.PRO);
+            subscription.setTotalAmountPaid(800+(250*subscription.getNoOfScreensSubscribed()));
+            amount=(800+(250*subscription.getNoOfScreensSubscribed()))-(500+(200*subscription.getNoOfScreensSubscribed()));
         }
+        subscription.setUser(user);
+        user.setSubscription(subscription);
+
+        userRepository.save(user);
+
         //update the subscription in the repository
+        return amount;
     }
 
     public Integer calculateTotalRevenueOfHotstar(){

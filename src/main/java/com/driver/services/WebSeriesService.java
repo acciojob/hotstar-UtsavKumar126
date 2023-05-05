@@ -44,7 +44,7 @@ public class WebSeriesService {
 
             productionHouseRepository.save(productionHouse);
 
-            return webSeries1.getId();
+            return webSeriesRepository.findBySeriesName(webSeriesEntryDto.getSeriesName()).getId();
         }
     }
 
